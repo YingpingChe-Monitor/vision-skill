@@ -170,13 +170,16 @@ def prepare_image_content(image_ref: str) -> dict:
         path = Path(image_ref)
         if not path.exists():
             raise InputError(f"Image file not found: {image_ref}")
-        data = path.read_bytes()
+        try:
+            data = path.read_bytes()
+        except OSError as exc:
+            raise InputError(f"Cannot read image file {image_ref}: {exc}") from exc
         mime = _detect_mime(data, path.name)
         url = f"data:{mime};base64,{base64.b64encode(data).decode('ascii')}"
     return {"type": "image_url", "image_url": {"url": url}}
 
 
-_DATA_URI_RE = re.compile(r"^data:image/[a-zA-Z0-9.+-]+;base64,([A-Za-z0-9+/]*={0,2})$")
+_DATA_URI_RE = re.compile(r"^data:image/[a-zA-Z0-9.+-]+;base64,([A-Za-z0-9+/]+={0,2})$")
 
 
 def _validate_data_uri(uri: str) -> str:

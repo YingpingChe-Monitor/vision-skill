@@ -153,6 +153,16 @@ class InputSlice(unittest.TestCase):
         with self.assertRaises(recognize.InputError):
             recognize.prepare_image_content("data:image/png;base64,AAAAA")
 
+    def test_empty_payload_data_uri_rejected(self):
+        with self.assertRaises(recognize.InputError):
+            recognize.prepare_image_content("data:image/png;base64,")
+
+    def test_unreadable_path_is_input_error_not_traceback(self):
+        with tempfile.TemporaryDirectory() as td:
+            with self.assertRaises(recognize.InputError) as ctx:
+                recognize.prepare_image_content(td)  # a directory, not a file
+        self.assertIn("Cannot read", str(ctx.exception))
+
     def test_padded_data_uri_accepted(self):
         uri = "data:image/png;base64," + base64.b64encode(b"ab").decode()
         self.assertEqual(uri.endswith("="), True)  # genuinely padded payload
