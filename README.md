@@ -34,14 +34,14 @@ cp -r .claude/skills/vision ~/.claude/skills/vision
 | 配置项 | 环境变量 | 配置文件 key | 默认值 |
 | ------ | -------- | ------------ | ------ |
 | API key（必填） | `VISION_API_KEY` | `api_key` | — |
-| 模型 | `VISION_MODEL` | `model` | `qwen-vl-max` |
+| 模型 | `VISION_MODEL` | `model` | `qwen3-vl-plus` |
 | 端点 | `VISION_ENDPOINT` | `endpoint` | `https://dashscope.aliyuncs.com/compatible-mode/v1` |
 | 提供方 | `VISION_PROVIDER` | `provider` | `dashscope` |
 
 配置文件：`~/.config/vision/config.json`
 
 ```json
-{ "api_key": "sk-...", "model": "qwen-vl-max" }
+{ "api_key": "sk-...", "model": "qwen3-vl-plus" }
 ```
 
 获取 key：阿里云百炼控制台 https://bailian.console.aliyun.com/ → API-KEY 管理。
@@ -79,7 +79,7 @@ python .agents/skills/vision/scripts/recognize.py C:\pics\shot.png --prompt "提
 2. 识别文本以标准块注入对话：
 
 ```
-[vision-result source="C:\pics\shot.png" model="qwen-vl-max" provider="dashscope"]
+[vision-result source="C:\pics\shot.png" model="qwen3-vl-plus" provider="dashscope"]
 <识别文本（逐字来自视觉模型）>
 [/vision-result]
 ```

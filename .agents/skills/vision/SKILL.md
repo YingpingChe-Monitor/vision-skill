@@ -25,14 +25,14 @@ file > defaults**.
 | Setting          | Env var           | Config file key | Default                                                     |
 | ---------------- | ----------------- | --------------- | ----------------------------------------------------------- |
 | API key (required) | `VISION_API_KEY` | `api_key`       | —                                                           |
-| Model            | `VISION_MODEL`    | `model`         | `qwen-vl-max`                                               |
+| Model            | `VISION_MODEL`    | `model`         | `qwen3-vl-plus`                                             |
 | Endpoint         | `VISION_ENDPOINT` | `endpoint`      | `https://dashscope.aliyuncs.com/compatible-mode/v1`         |
 | Provider         | `VISION_PROVIDER` | `provider`      | `dashscope`                                                 |
 
 Config file (JSON, same keys): `~/.config/vision/config.json`
 
 ```json
-{ "api_key": "sk-...", "model": "qwen-vl-max" }
+{ "api_key": "sk-...", "model": "qwen3-vl-plus" }
 ```
 
 Get a key from Aliyun Bailian (百炼) at https://bailian.console.aliyun.com/

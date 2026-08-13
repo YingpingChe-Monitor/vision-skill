@@ -35,7 +35,7 @@ class ConfigSlice(unittest.TestCase):
             )
         self.assertEqual(cfg["provider"], "dashscope")
         self.assertEqual(cfg["endpoint"], "https://dashscope.aliyuncs.com/compatible-mode/v1")
-        self.assertEqual(cfg["model"], "qwen-vl-max")
+        self.assertEqual(cfg["model"], "qwen3-vl-plus")
         self.assertEqual(cfg["api_key"], "sk-test")
 
     def test_config_file_supplies_key_and_model(self):
@@ -188,7 +188,7 @@ CFG = {
     "provider": "dashscope",
     "api_key": "sk-test",
     "endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1",
-    "model": "qwen-vl-max",
+    "model": "qwen3-vl-plus",
 }
 
 IMG = {"type": "image_url", "image_url": {"url": "data:image/png;base64,AAAA"}}
@@ -221,7 +221,7 @@ class ApiSlice(unittest.TestCase):
         self.assertEqual(headers["Authorization"], "Bearer sk-test")
         self.assertEqual(headers["Content-Type"], "application/json")
         payload = json.loads(data)
-        self.assertEqual(payload["model"], "qwen-vl-max")
+        self.assertEqual(payload["model"], "qwen3-vl-plus")
         self.assertEqual(payload["messages"][0]["role"], "user")
         self.assertEqual(payload["messages"][0]["content"][0], IMG)
         self.assertEqual(payload["messages"][0]["content"][1]["type"], "text")
@@ -367,7 +367,7 @@ class CliSlice(unittest.TestCase):
         self.assertEqual(code, 0)
         data = json.loads(out)
         self.assertEqual(data["text"], "A red stop sign.")
-        self.assertEqual(data["model"], "qwen-vl-max")
+        self.assertEqual(data["model"], "qwen3-vl-plus")
         self.assertEqual(data["provider"], "dashscope")
         self.assertEqual(data["source"], str(p))
 
@@ -401,7 +401,7 @@ class MockVisionHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(data)
             return
-        if body.get("model") != "qwen-vl-max":
+        if body.get("model") != "qwen3-vl-plus":
             self.send_response(400)
             payload = {"error": {"message": f"unknown model {body.get('model')}"}}
         else:

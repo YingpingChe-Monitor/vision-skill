@@ -10,7 +10,7 @@ Configuration precedence: environment variables > config file > defaults.
     VISION_PROVIDER  provider name                (default: dashscope)
     VISION_API_KEY   API key (required)
     VISION_ENDPOINT  OpenAI-compatible base URL   (default: https://dashscope.aliyuncs.com/compatible-mode/v1)
-    VISION_MODEL     vision model name            (default: qwen-vl-max)
+    VISION_MODEL     vision model name            (default: qwen3-vl-plus)
 
 Config file (JSON, same keys): ~/.config/vision/config.json
 
@@ -34,7 +34,7 @@ DEFAULTS = {
     "provider": "dashscope",
     "api_key": "",
     "endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1",
-    "model": "qwen-vl-max",
+    "model": "qwen3-vl-plus",
 }
 
 ENV_KEYS = {
