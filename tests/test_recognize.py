@@ -1,6 +1,7 @@
 """Tests for the vision skill recognition script (stdlib unittest)."""
 
 import base64
+import http.client
 import json
 import os
 import sys
@@ -255,6 +256,11 @@ class ApiSlice(unittest.TestCase):
         with self.assertRaises(recognize.ApiError) as ctx:
             recognize.call_vision(CFG, IMG, opener=opener)
         self.assertIn("connection refused", str(ctx.exception))
+
+    def test_interrupted_body_maps_to_api_error(self):
+        opener = FakeOpener(exc=http.client.IncompleteRead(b"partial"))
+        with self.assertRaises(recognize.ApiError):
+            recognize.call_vision(CFG, IMG, opener=opener)
 
     def test_empty_choices_raises_api_error(self):
         opener = FakeOpener(body={"choices": []})

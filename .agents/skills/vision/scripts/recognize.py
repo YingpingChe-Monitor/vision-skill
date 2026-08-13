@@ -21,6 +21,7 @@ Exit codes: 0 = recognized (text on stdout); 2 = configuration error;
 from __future__ import annotations
 
 import base64
+import http.client
 import json
 import os
 import re
@@ -248,7 +249,7 @@ def call_vision(config: dict, image_content: dict, prompt: str = None, opener=No
     opener = opener or _default_opener
     try:
         status, body = opener(url, headers, json.dumps(payload).encode("utf-8"))
-    except (urllib.error.URLError, TimeoutError, OSError, ValueError) as exc:
+    except (urllib.error.URLError, TimeoutError, OSError, ValueError, http.client.HTTPException) as exc:
         raise ApiError(f"Could not reach the vision API at {url}: {exc}") from exc
 
     if status != 200:
