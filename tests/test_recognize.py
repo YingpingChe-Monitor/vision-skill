@@ -17,6 +17,13 @@ sys.path.insert(0, str(SCRIPTS))
 
 import recognize  # noqa: E402
 
+# Isolate tests from the ambient environment: disable automatic project-config
+# discovery (CWD may sit inside a repo that has a real .vision.config.json with
+# a live key). Project-config behavior is tested explicitly via
+# project_config_path= in ProjectConfigSlice.
+_original_find_project_config = recognize._find_project_config
+recognize._find_project_config = lambda start=None: None  # noqa: E402
+
 PNG_1PX = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
 )
@@ -112,7 +119,7 @@ class ProjectConfigSlice(unittest.TestCase):
             (root / recognize.PROJECT_CONFIG_NAME).write_text(json.dumps({"model": "m"}))
             deep = root / "sub" / "deep"
             deep.mkdir(parents=True)
-            found = recognize._find_project_config(start=deep)
+            found = _original_find_project_config(start=deep)
         self.assertEqual(found, root / recognize.PROJECT_CONFIG_NAME)
 
     def test_no_project_config_returns_none(self):
