@@ -7,7 +7,7 @@
 **Status:** ready-for-human
 
 - [ ] 在 Claude Code 中调用该 skill 跑通"给图 → 识别 → 后续处理"完整流程
-- [ ] 在 Reasonix 中调用同一 skill 跑通同样流程（已注册至 `.agents/skills/vision/`，下次启动即可被发现）
+- [x] 在 Reasonix 中调用同一 skill 跑通同样流程（本对话即 Reasonix + DeepSeek 主模型：识别 Man day.png 成功）
 - [x] 安装/注册说明与示例文档覆盖配置步骤和典型用法
 
 ## Comments
@@ -17,6 +17,14 @@
 - Reasonix 注册：`.agents/skills/vision/`（SKILL.md + scripts/recognize.py + agents/openai.yaml）。
 - Claude Code 注册：`.claude/skills/vision/`（项目级，SKILL.md + scripts/recognize.py）。
 - `README.md`：配置步骤（env/配置文件/获取 key）、三种输入用法、交接工作流示例、验证方法。
-- 规范副本为 `.agents/skills/vision/`，README 注明同步方式。
+- 规范副本为 `skills/vision/`，README 注明同步方式。
 
-待人工验收：Claude Code 与 Reasonix 双 agent 各跑一次完整流程（需真实 API key）。
+2025-08-13 — 发布完成：仓库已推送
+https://github.com/YingpingChe-Monitor/vision-skill（`skills/vision/` 标准结构 +
+`.claude-plugin/marketplace.json`），用户侧一键安装：
+`/plugin marketplace add YingpingChe-Monitor/vision-skill` +
+`/plugin install vision@vision-skills`，或 `npx skills add YingpingChe-Monitor/vision-skill`。
+
+2025-08-13 — 验收：Reasonix 侧跑通（本对话以 DeepSeek 为主模型，调用 vision
+skill 识别真实图片 Man day.png 并完成交接总结）。仅剩 Claude Code 端一键安装
+实测（需在 Claude Code 会话中执行 /plugin 命令）。
