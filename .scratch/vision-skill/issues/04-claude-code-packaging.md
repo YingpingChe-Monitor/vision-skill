@@ -1,0 +1,22 @@
+# 04 — Claude Code 端到端验证与安装说明
+
+**What to build:** 双 agent 打包收尾：把 skill 注册进 Claude Code（`.claude/skills/` 或全局 skills 目录）与 Reasonix（skills 根目录），补齐 `agents/openai.yaml` 接口元数据（如该仓库惯例需要），并编写 README/示例，覆盖配置步骤与典型用法（给图 → 识别 → 主模型后续处理）。验收以两个 agent 实测跑通为准。
+
+**Blocked by:** 01 — Vision skill 骨架：配置 + 阿里云百炼 Qwen-VL 视觉识别；02 — 识别结果交接给主模型（如 DeepSeek）继续处理
+
+**Status:** ready-for-agent
+
+- [ ] 在 Claude Code 中调用该 skill 跑通"给图 → 识别 → 后续处理"完整流程
+- [ ] 在 Reasonix 中调用同一 skill 跑通同样流程（已注册至 `.agents/skills/vision/`，下次启动即可被发现）
+- [x] 安装/注册说明与示例文档覆盖配置步骤和典型用法
+
+## Comments
+
+2025-08-13 — 已实现：
+
+- Reasonix 注册：`.agents/skills/vision/`（SKILL.md + scripts/recognize.py + agents/openai.yaml）。
+- Claude Code 注册：`.claude/skills/vision/`（项目级，SKILL.md + scripts/recognize.py）。
+- `README.md`：配置步骤（env/配置文件/获取 key）、三种输入用法、交接工作流示例、验证方法。
+- 规范副本为 `.agents/skills/vision/`，README 注明同步方式。
+
+待人工验收：Claude Code 与 Reasonix 双 agent 各跑一次完整流程（需真实 API key）。
