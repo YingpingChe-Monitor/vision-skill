@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 - [x] 配置百炼 API key 后，给定本地图片路径，能返回识别文本
 - [x] 未配置时给出清晰引导（设置哪些环境变量、如何获取 key），不产生晦涩错误

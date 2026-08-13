@@ -144,6 +144,22 @@ class InputSlice(unittest.TestCase):
             with self.assertRaises(recognize.InputError):
                 recognize.prepare_image_content(str(p))
 
+    def test_non_image_data_uri_rejected(self):
+        with self.assertRaises(recognize.InputError) as ctx:
+            recognize.prepare_image_content("data:text/plain;base64,aGVsbG8=")
+        self.assertIn("data:image/", str(ctx.exception))
+
+    def test_truncated_base64_data_uri_rejected(self):
+        with self.assertRaises(recognize.InputError):
+            recognize.prepare_image_content("data:image/png;base64,AAAAA")
+
+    def test_padded_data_uri_accepted(self):
+        uri = "data:image/png;base64," + base64.b64encode(b"ab").decode()
+        self.assertEqual(uri.endswith("="), True)  # genuinely padded payload
+        self.assertEqual(
+            recognize.prepare_image_content(uri)["image_url"]["url"], uri
+        )
+
 
 # ---------------------------------------------------------------------------
 # S3 — API call: request shape, response parsing, error mapping
@@ -229,6 +245,13 @@ class ApiSlice(unittest.TestCase):
     def test_missing_key_in_config_raises_config_error(self):
         with self.assertRaises(recognize.ConfigError):
             recognize.call_vision(dict(CFG, api_key=""), IMG, opener=FakeOpener())
+
+    def test_empty_content_rejected(self):
+        for bad in (None, "", "   "):
+            opener = FakeOpener(body={"choices": [{"message": {"content": bad}}]})
+            with self.assertRaises(recognize.ApiError) as ctx:
+                recognize.call_vision(CFG, IMG, opener=opener)
+            self.assertIn("empty recognition result", str(ctx.exception))
 
 
 # ---------------------------------------------------------------------------
@@ -351,6 +374,14 @@ class MockVisionHandler(BaseHTTPRequestHandler):
             "auth": self.headers.get("Authorization"),
             "body": body,
         }
+        if body.get("model") == "garbage-response":
+            self.send_response(200)
+            data = b"this is not json"
+            self.send_header("Content-Type", "text/plain")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+            return
         if body.get("model") != "qwen-vl-max":
             self.send_response(400)
             payload = {"error": {"message": f"unknown model {body.get('model')}"}}
@@ -443,6 +474,20 @@ class E2ESlice(unittest.TestCase):
         )
         self.assertEqual(code, 4)
         self.assertIn("unknown model", err)
+
+    def test_non_json_200_body_is_clean_api_error_not_traceback(self):
+        code, out, err = run_cli(
+            ["https://example.com/pic.png"],
+            env={
+                "VISION_API_KEY": "sk-e2e",
+                "VISION_ENDPOINT": self.endpoint,
+                "VISION_MODEL": "garbage-response",
+            },
+            config_path=Path("C:/nope/config.json"),
+        )
+        self.assertEqual(code, 4)
+        self.assertIn("non-JSON", err)
+        self.assertNotIn("Traceback", err)
 
 
 if __name__ == "__main__":

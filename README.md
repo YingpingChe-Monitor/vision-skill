@@ -68,7 +68,7 @@ python .agents/skills/vision/scripts/recognize.py "data:image/png;base64,iVBORw0
 python .agents/skills/vision/scripts/recognize.py C:\pics\shot.png --prompt "提取图中的订单号" --json
 ```
 
-三种输入走同一条识别流程，输出格式完全一致。退出码：`0` 成功 · `2` 配置错误 ·
+三种输入走同一条识别流程，输出格式完全一致。退出码：`0` 成功 · `2` 配置或用法错误 ·
 `3` 输入错误 · `4` API 错误。
 
 ### 交接给主模型（完整工作流）

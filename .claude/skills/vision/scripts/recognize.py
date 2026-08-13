@@ -23,6 +23,7 @@ from __future__ import annotations
 import base64
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -68,12 +69,15 @@ class ApiError(VisionError):
     exit_code = EXIT_API
 
 
+KEY_BY_CONFIG = {value: key for key, value in ENV_KEYS.items()}
+
+
 def config_guidance() -> str:
     return (
         "No API key is configured for the vision skill.\n"
         "\n"
         "Set the environment variable (recommended):\n"
-        f"    export {next(k for k, v in ENV_KEYS.items() if v == 'api_key')}=<your-key>\n"
+        f"    export {KEY_BY_CONFIG['api_key']}=<your-key>\n"
         "\n"
         "or create a config file:\n"
         f"    {DEFAULT_CONFIG_PATH}  ->  {{\"api_key\": \"<your-key>\"}}\n"
@@ -81,9 +85,9 @@ def config_guidance() -> str:
         "Get a key from Aliyun Bailian (bailian.console.aliyun.com) at "
         "https://bailian.console.aliyun.com/ (API-KEY management page).\n"
         "Optional overrides:\n"
-        f"    {next(k for k, v in ENV_KEYS.items() if v == 'model')}   model name (default {DEFAULTS['model']})\n"
-        f"    {next(k for k, v in ENV_KEYS.items() if v == 'endpoint')} OpenAI-compatible base URL (default {DEFAULTS['endpoint']})\n"
-        f"    {next(k for k, v in ENV_KEYS.items() if v == 'provider')} provider name (default {DEFAULTS['provider']})"
+        f"    {KEY_BY_CONFIG['model']}   model name (default {DEFAULTS['model']})\n"
+        f"    {KEY_BY_CONFIG['endpoint']} OpenAI-compatible base URL (default {DEFAULTS['endpoint']})\n"
+        f"    {KEY_BY_CONFIG['provider']} provider name (default {DEFAULTS['provider']})"
     )
 
 
@@ -151,25 +155,42 @@ def _detect_mime(data: bytes, filename: str) -> str:
     )
 
 
-def prepare_image_content(spec: str) -> dict:
+def prepare_image_content(image_ref: str) -> dict:
     """Normalize any accepted image input to OpenAI vision content.
 
     Accepted forms (ticket 03): local file path, http(s) URL, base64 data URI.
     All three produce the identical output shape.
     """
-    spec = spec.strip()
-    if spec.startswith(("http://", "https://")):
-        url = spec
-    elif spec.startswith("data:"):
-        url = spec
+    image_ref = image_ref.strip()
+    if image_ref.startswith(("http://", "https://")):
+        url = image_ref
+    elif image_ref.startswith("data:"):
+        url = _validate_data_uri(image_ref)
     else:
-        path = Path(spec)
+        path = Path(image_ref)
         if not path.exists():
-            raise InputError(f"Image file not found: {spec}")
+            raise InputError(f"Image file not found: {image_ref}")
         data = path.read_bytes()
         mime = _detect_mime(data, path.name)
         url = f"data:{mime};base64,{base64.b64encode(data).decode('ascii')}"
     return {"type": "image_url", "image_url": {"url": url}}
+
+
+_DATA_URI_RE = re.compile(r"^data:image/[a-zA-Z0-9.+-]+;base64,([A-Za-z0-9+/=]+)$")
+
+
+def _validate_data_uri(uri: str) -> str:
+    """Accept only well-formed base64 image data URIs (ticket 03)."""
+    match = _DATA_URI_RE.match(uri)
+    if not match:
+        raise InputError(
+            "Invalid base64 data URI — expected the form "
+            "'data:image/<type>;base64,<payload>' (e.g. data:image/png;base64,iVBOR...)."
+        )
+    payload = match.group(1)
+    if len(payload) % 4 != 0:
+        raise InputError("Invalid base64 data URI — payload length is not a multiple of 4.")
+    return uri
 
 
 DEFAULT_PROMPT = (
@@ -185,15 +206,17 @@ def _default_opener(url, headers, data):
     req = urllib.request.Request(url, data=data, headers=headers, method="POST")
     try:
         with urllib.request.urlopen(req, timeout=DEFAULT_TIMEOUT) as resp:
-            return resp.status, json.loads(resp.read().decode("utf-8"))
+            raw = resp.read().decode("utf-8")
     except urllib.error.HTTPError as exc:
+        raw = exc.read().decode("utf-8", errors="replace")
         try:
-            body = json.loads(exc.read().decode("utf-8"))
-        except (ValueError, OSError):
-            body = {}
-        return exc.code, body
-    except (urllib.error.URLError, TimeoutError, OSError) as exc:
-        raise ApiError(f"Could not reach the vision API at {url}: {exc}") from exc
+            return exc.code, json.loads(raw)
+        except ValueError:
+            return exc.code, {}
+    try:
+        return resp.status, json.loads(raw)
+    except ValueError as exc:
+        raise ApiError(f"Vision API returned a non-JSON response (HTTP {resp.status})") from exc
 
 
 def call_vision(config: dict, image_content: dict, prompt: str = None, opener=None) -> str:
@@ -228,9 +251,15 @@ def call_vision(config: dict, image_content: dict, prompt: str = None, opener=No
         detail = f": {message}" if message else ""
         raise ApiError(f"Vision API returned HTTP {status}{detail}")
     try:
-        return body["choices"][0]["message"]["content"]
+        text = body["choices"][0]["message"]["content"]
     except (KeyError, IndexError, TypeError) as exc:
         raise ApiError(f"Unexpected response from the vision API: {body!r}") from exc
+    if not isinstance(text, str) or not text.strip():
+        raise ApiError(
+            "The vision API returned an empty recognition result — refusing to "
+            "hand back empty text as if the image were recognized."
+        )
+    return text
 
 
 USAGE = """usage: recognize.py <image> [--prompt <text>] [--json]

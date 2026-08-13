@@ -58,8 +58,8 @@ and produce the same output:
    by the configured provider)
 3. Pasted base64 data URI — `data:image/png;base64,iVBORw0KGgo...`
 
-The recognition text is printed to stdout. Exit codes: `0` ok · `2` config
-error · `3` input error · `4` API error.
+The recognition text is printed to stdout. Exit codes: `0` ok · `2` config or
+usage error · `3` input error · `4` API error.
 
 `--json` prints `{"source": ..., "model": ..., "provider": ..., "text": ...}`
 — use it for the handoff block below.
@@ -92,7 +92,7 @@ Never present the vision model's text as something you saw yourself.
 
 | Symptom                         | Fix                                              |
 | ------------------------------- | ------------------------------------------------ |
-| Exit 2 + setup guidance         | Configure `VISION_API_KEY` (env or config file)  |
+| Exit 2 + setup guidance / usage | Configure `VISION_API_KEY` (env or config file), or fix the command line |
 | Exit 4, HTTP 401                | Wrong or expired API key                         |
 | Exit 4, HTTP 400                | Unsupported model name; check `VISION_MODEL`     |
 | Exit 4 with URL image           | URL must be publicly reachable by the provider   |

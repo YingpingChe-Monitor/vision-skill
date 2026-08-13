@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — Vision skill 骨架：配置 + 阿里云百炼 Qwen-VL 视觉识别
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 - [x] 给定网络图片 URL 能完成识别
 - [x] 给定粘贴的 base64 data URI 能完成识别

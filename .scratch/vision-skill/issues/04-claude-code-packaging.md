@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — Vision skill 骨架：配置 + 阿里云百炼 Qwen-VL 视觉识别；02 — 识别结果交接给主模型（如 DeepSeek）继续处理
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 - [ ] 在 Claude Code 中调用该 skill 跑通"给图 → 识别 → 后续处理"完整流程
 - [ ] 在 Reasonix 中调用同一 skill 跑通同样流程（已注册至 `.agents/skills/vision/`，下次启动即可被发现）

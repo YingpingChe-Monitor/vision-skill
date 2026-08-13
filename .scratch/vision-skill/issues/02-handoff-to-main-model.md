@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — Vision skill 骨架：配置 + 阿里云百炼 Qwen-VL 视觉识别
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 - [ ] 用 DeepSeek 作主模型：给图 + "识别并总结"，最终输出基于识别文本的正确总结
 - [x] 交接块的格式稳定、来源清晰，不与主模型自身输出混淆
