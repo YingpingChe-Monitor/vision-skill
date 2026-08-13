@@ -10,17 +10,31 @@ provider / API key / 模型名 / 端点均可配置，也支持换成任意 Open
 
 ## 安装与注册
 
-本仓库内已注册两份（内容一致）：
+### 发布到 GitHub 后的一键安装（推荐）
+
+本仓库是标准「仓库即 marketplace」结构（`skills/vision/` + `.claude-plugin/marketplace.json`），
+发布到 GitHub 后用户两条命令即可安装：
+
+```
+# 路径 A：Claude Code（先 add 仓库为 marketplace，再装插件）
+/plugin marketplace add <owner>/<repo>
+/plugin install vision@vision-skills
+
+# 路径 B：任意 agent（skills.sh 自动识别 Claude Code/Codex 等 70+ 种并装到正确路径）
+npx skills add <owner>/<repo>
+```
+
+### 本仓库内的注册
 
 | Agent | 位置 |
 | ----- | ---- |
 | Reasonix | `.agents/skills/vision/`（本项目 skills 根目录） |
 | Claude Code | `.claude/skills/vision/`（项目级 skills 目录） |
 
-> 规范副本在 `.agents/skills/vision/`；修改后需同步到
-> `.claude/skills/vision/`（`cp` 两份文件即可）。
+> 规范副本在 `skills/vision/`；修改后需同步到两个注册位
+> （`.agents/skills/vision/` 与 `.claude/skills/vision/`，`cp` 即可）。
 
-要装到其他项目 / 全局：
+手动装到其他项目 / 全局：
 
 ```bash
 # Claude Code 全局
@@ -57,16 +71,16 @@ export VISION_API_KEY="sk-..."
 
 ```bash
 # 1. 本地图片
-python .agents/skills/vision/scripts/recognize.py C:\pics\shot.png
+python skills/vision/scripts/recognize.py C:\pics\shot.png
 
 # 2. 网络图片 URL
-python .agents/skills/vision/scripts/recognize.py https://example.com/pic.png
+python skills/vision/scripts/recognize.py https://example.com/pic.png
 
 # 3. 剪贴板粘贴的 base64 data URI
-python .agents/skills/vision/scripts/recognize.py "data:image/png;base64,iVBORw0KGgo..."
+python skills/vision/scripts/recognize.py "data:image/png;base64,iVBORw0KGgo..."
 
 # 4. 指定任务 + 结构化输出（用于交接给主模型）
-python .agents/skills/vision/scripts/recognize.py C:\pics\shot.png --prompt "提取图中的订单号" --json
+python skills/vision/scripts/recognize.py C:\pics\shot.png --prompt "提取图中的订单号" --json
 ```
 
 三种输入走同一条识别流程，输出格式完全一致。退出码：`0` 成功 · `2` 配置或用法错误 ·
@@ -92,7 +106,7 @@ python .agents/skills/vision/scripts/recognize.py C:\pics\shot.png --prompt "提
 
 ```bash
 python -m unittest discover -s tests          # 40 项单元 + 本地 mock 服务器 E2E
-python .agents/skills/vision/scripts/recognize.py --help
+python skills/vision/scripts/recognize.py --help
 ```
 
 E2E 测试内置一个本地 mock 视觉服务（`tests/test_recognize.py`），不依赖外网。

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Vision"
+  short_description: "Recognize images via a configurable vision model (Qwen-VL)"
+policy:
+  allow_implicit_invocation: true

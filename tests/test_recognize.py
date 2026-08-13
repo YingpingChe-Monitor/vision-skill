@@ -12,7 +12,7 @@ import urllib.error
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-SCRIPTS = Path(__file__).resolve().parents[1] / ".agents" / "skills" / "vision" / "scripts"
+SCRIPTS = Path(__file__).resolve().parents[1] / "skills" / "vision" / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 import recognize  # noqa: E402

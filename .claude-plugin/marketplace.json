@@ -1,0 +1,9 @@
+{
+  "name": "vision-skills",
+  "plugins": [
+    {
+      "name": "vision",
+      "source": "./skills/vision"
+    }
+  ]
+}
