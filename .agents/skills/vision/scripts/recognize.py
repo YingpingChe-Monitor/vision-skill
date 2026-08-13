@@ -5,14 +5,17 @@ Recognizes an image (local path, http(s) URL, or base64 data URI) with a
 configurable OpenAI-compatible vision model. Defaults to Aliyun Bailian
 (阿里云百炼) Qwen-VL via the DashScope compatible-mode endpoint.
 
-Configuration precedence: environment variables > config file > defaults.
+Configuration precedence: environment variables > project config file >
+user config file > defaults.
 
     VISION_PROVIDER  provider name                (default: dashscope)
     VISION_API_KEY   API key (required)
     VISION_ENDPOINT  OpenAI-compatible base URL   (default: https://dashscope.aliyuncs.com/compatible-mode/v1)
     VISION_MODEL     vision model name            (default: qwen3-vl-plus)
 
-Config file (JSON, same keys): ~/.config/vision/config.json
+Project config file (JSON, same keys): nearest `.vision.config.json` found
+walking up from the current directory. User config file:
+~/.config/vision/config.json
 
 Exit codes: 0 = recognized (text on stdout); 2 = configuration error;
 3 = input error; 4 = API error.
@@ -46,6 +49,8 @@ ENV_KEYS = {
 }
 
 DEFAULT_CONFIG_PATH = Path.home() / ".config" / "vision" / "config.json"
+
+PROJECT_CONFIG_NAME = ".vision.config.json"
 
 EXIT_OK = 0
 EXIT_CONFIG = 2
@@ -93,22 +98,46 @@ def config_guidance() -> str:
     )
 
 
-def load_config(env=None, config_path=None) -> dict:
-    """Resolve config: env vars > config file > defaults."""
+def _read_config_file(path: Path, label: str) -> dict:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ConfigError(f"Cannot read {label} config file {path}: {exc}") from exc
+    if not isinstance(data, dict):
+        raise ConfigError(f"{label} config file {path} must contain a JSON object.")
+    return data
+
+
+def _find_project_config(start=None) -> Path | None:
+    """Find the nearest {PROJECT_CONFIG_NAME} walking up from start (default CWD)."""
+    start = Path(start) if start is not None else Path.cwd()
+    for directory in (start, *start.parents):
+        candidate = directory / PROJECT_CONFIG_NAME
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def load_config(env=None, config_path=None, project_config_path=None) -> dict:
+    """Resolve config: env vars > project config > user config file > defaults."""
     env = dict(env) if env is not None else dict(os.environ)
     config_path = Path(config_path) if config_path is not None else DEFAULT_CONFIG_PATH
+    if project_config_path is None:
+        project_config_path = _find_project_config()
+    elif isinstance(project_config_path, str):
+        project_config_path = Path(project_config_path)
 
     cfg = dict(DEFAULTS)
     if config_path.exists():
-        try:
-            data = json.loads(config_path.read_text(encoding="utf-8"))
-        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
-            raise ConfigError(f"Cannot read config file {config_path}: {exc}") from exc
-        if not isinstance(data, dict):
-            raise ConfigError(f"Config file {config_path} must contain a JSON object.")
         for key in DEFAULTS:
-            if isinstance(data.get(key), str) and data[key]:
-                cfg[key] = data[key]
+            value = _read_config_file(config_path, "user").get(key)
+            if isinstance(value, str) and value:
+                cfg[key] = value
+    if project_config_path is not None and project_config_path.exists():
+        for key in DEFAULTS:
+            value = _read_config_file(project_config_path, "project").get(key)
+            if isinstance(value, str) and value:
+                cfg[key] = value
     for var, key in ENV_KEYS.items():
         if env.get(var):
             cfg[key] = env[var]
@@ -275,9 +304,9 @@ USAGE = """usage: recognize.py <image> [--prompt <text>] [--json]
 --json   print a JSON object: {source, model, provider, text}
 --help   show this help
 
-Configure with VISION_API_KEY (see config_guidance on error), or
-~/.config/vision/config.json. Optional: VISION_MODEL, VISION_ENDPOINT,
-VISION_PROVIDER."""
+Configure with VISION_API_KEY (see config_guidance on error), the nearest
+.vision.config.json, or ~/.config/vision/config.json. Optional:
+VISION_MODEL, VISION_ENDPOINT, VISION_PROVIDER."""
 
 
 def _usage_error() -> int:

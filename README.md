@@ -29,7 +29,7 @@ cp -r .claude/skills/vision ~/.claude/skills/vision
 
 ## 配置
 
-优先级：**环境变量 > 配置文件 > 默认值**。
+优先级：**环境变量 > 项目配置文件 > 用户配置文件 > 默认值**。
 
 | 配置项 | 环境变量 | 配置文件 key | 默认值 |
 | ------ | -------- | ------------ | ------ |
@@ -38,7 +38,8 @@ cp -r .claude/skills/vision ~/.claude/skills/vision
 | 端点 | `VISION_ENDPOINT` | `endpoint` | `https://dashscope.aliyuncs.com/compatible-mode/v1` |
 | 提供方 | `VISION_PROVIDER` | `provider` | `dashscope` |
 
-配置文件：`~/.config/vision/config.json`
+- **项目配置文件**（推荐，团队共享）：从当前目录向上查找最近的 `.vision.config.json`，放进仓库根目录即可
+- **用户配置文件**：`~/.config/vision/config.json`
 
 ```json
 { "api_key": "sk-...", "model": "qwen3-vl-plus" }

@@ -81,7 +81,7 @@ class ConfigSlice(unittest.TestCase):
             p.write_bytes('{"api_key": "\u767e\u70bc"}'.encode("gbk"))
             with self.assertRaises(recognize.ConfigError) as ctx:
                 recognize.load_config(env={}, config_path=p)
-        self.assertIn("Cannot read config file", str(ctx.exception))
+        self.assertIn("Cannot read user config file", str(ctx.exception))
 
     def test_invalid_endpoint_raises_config_error(self):
         with tempfile.TemporaryDirectory() as td:
@@ -98,6 +98,79 @@ class ConfigSlice(unittest.TestCase):
             p.write_text(json.dumps({"api_key": "sk", "extra": "ignored"}))
             cfg = recognize.load_config(env={}, config_path=p)
         self.assertNotIn("extra", cfg)
+
+
+# ---------------------------------------------------------------------------
+# S6 — project-level config: env > project .vision.config.json > user config > defaults
+# ---------------------------------------------------------------------------
+
+
+class ProjectConfigSlice(unittest.TestCase):
+    def test_project_config_found_walking_up_from_subdirectory(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / recognize.PROJECT_CONFIG_NAME).write_text(json.dumps({"model": "m"}))
+            deep = root / "sub" / "deep"
+            deep.mkdir(parents=True)
+            found = recognize._find_project_config(start=deep)
+        self.assertEqual(found, root / recognize.PROJECT_CONFIG_NAME)
+
+    def test_no_project_config_returns_none(self):
+        with tempfile.TemporaryDirectory() as td:
+            self.assertIsNone(recognize._find_project_config(start=Path(td)))
+
+    def test_project_config_merged_with_user_config(self):
+        with tempfile.TemporaryDirectory() as td:
+            user = Path(td) / "user.json"
+            user.write_text(json.dumps({"api_key": "sk-user"}))
+            proj = Path(td) / "proj.json"
+            proj.write_text(json.dumps({"model": "proj-model"}))
+            cfg = recognize.load_config(env={}, config_path=user, project_config_path=proj)
+        self.assertEqual(cfg["api_key"], "sk-user")
+        self.assertEqual(cfg["model"], "proj-model")
+
+    def test_project_config_overrides_user_config(self):
+        with tempfile.TemporaryDirectory() as td:
+            user = Path(td) / "user.json"
+            user.write_text(json.dumps({"model": "user-model", "api_key": "sk"}))
+            proj = Path(td) / "proj.json"
+            proj.write_text(json.dumps({"model": "proj-model"}))
+            cfg = recognize.load_config(env={}, config_path=user, project_config_path=proj)
+        self.assertEqual(cfg["model"], "proj-model")
+
+    def test_env_overrides_project_config(self):
+        with tempfile.TemporaryDirectory() as td:
+            proj = Path(td) / "proj.json"
+            proj.write_text(json.dumps({"model": "proj-model", "api_key": "sk-proj"}))
+            cfg = recognize.load_config(
+                env={"VISION_MODEL": "env-model", "VISION_API_KEY": "sk-env"},
+                config_path=Path(td) / "nope.json",
+                project_config_path=proj,
+            )
+        self.assertEqual(cfg["model"], "env-model")
+        self.assertEqual(cfg["api_key"], "sk-env")
+
+    def test_missing_project_config_ignored(self):
+        with tempfile.TemporaryDirectory() as td:
+            user = Path(td) / "user.json"
+            user.write_text(json.dumps({"api_key": "sk", "model": "user-model"}))
+            cfg = recognize.load_config(
+                env={},
+                config_path=user,
+                project_config_path=Path(td) / "missing.json",
+            )
+        self.assertEqual(cfg["model"], "user-model")
+
+    def test_invalid_project_config_raises_config_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            proj = Path(td) / "proj.json"
+            proj.write_text("{broken")
+            with self.assertRaises(recognize.ConfigError):
+                recognize.load_config(
+                    env={"VISION_API_KEY": "sk"},
+                    config_path=Path(td) / "nope.json",
+                    project_config_path=proj,
+                )
 
 
 # ---------------------------------------------------------------------------

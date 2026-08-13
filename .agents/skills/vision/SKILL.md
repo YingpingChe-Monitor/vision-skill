@@ -19,8 +19,8 @@ main model never needs to see the image directly.
 
 ## Configuration
 
-Configuration is resolved in this order: **environment variables > config
-file > defaults**.
+Configuration is resolved in this order: **environment variables > project
+config file > user config file > defaults**.
 
 | Setting          | Env var           | Config file key | Default                                                     |
 | ---------------- | ----------------- | --------------- | ----------------------------------------------------------- |
@@ -29,7 +29,9 @@ file > defaults**.
 | Endpoint         | `VISION_ENDPOINT` | `endpoint`      | `https://dashscope.aliyuncs.com/compatible-mode/v1`         |
 | Provider         | `VISION_PROVIDER` | `provider`      | `dashscope`                                                 |
 
-Config file (JSON, same keys): `~/.config/vision/config.json`
+Project config file (JSON, same keys): the nearest `.vision.config.json`
+found by walking up from the current directory — commit it to the repo so
+the whole team shares it. User config file: `~/.config/vision/config.json`
 
 ```json
 { "api_key": "sk-...", "model": "qwen3-vl-plus" }
