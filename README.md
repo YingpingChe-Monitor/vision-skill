@@ -10,18 +10,35 @@ provider / API key / 模型名 / 端点均可配置，也支持换成任意 Open
 
 ## 安装与注册
 
-### 发布到 GitHub 后的一键安装（推荐）
+### 方式一：复制即安装（最简单，官方文档标准方式）
+
+skill 就是一个含 `SKILL.md` 的目录，复制到 skills 目录即完成安装：
+
+```bash
+# 1. 获取仓库（任选其一）
+git clone https://github.com/YingpingChe-Monitor/vision-skill.git
+# 或下载 zip 解压：https://github.com/YingpingChe-Monitor/vision-skill/archive/refs/heads/main.zip
+
+cd vision-skill
+
+# 2. 复制即安装（任选一个目标位置）
+cp -r skills/vision ~/.claude/skills/vision                  # Claude Code 用户级（全局）
+cp -r skills/vision <你的项目>/.claude/skills/vision         # Claude Code 项目级
+cp -r skills/vision <你的项目>/.agents/skills/vision         # Reasonix 项目级
+```
+
+### 方式二：GitHub 一键安装
 
 本仓库是标准「仓库即 marketplace」结构（`skills/vision/` + `.claude-plugin/marketplace.json`），
-发布到 GitHub 后用户两条命令即可安装：
+已发布到 https://github.com/YingpingChe-Monitor/vision-skill ：
 
 ```
-# 路径 A：Claude Code（先 add 仓库为 marketplace，再装插件）
-/plugin marketplace add <owner>/<repo>
+# Claude Code（先 add 仓库为 marketplace，再装插件）
+/plugin marketplace add YingpingChe-Monitor/vision-skill
 /plugin install vision@vision-skills
 
-# 路径 B：任意 agent（skills.sh 自动识别 Claude Code/Codex 等 70+ 种并装到正确路径）
-npx skills add <owner>/<repo>
+# 任意 agent（skills.sh 自动识别 Claude Code/Codex 等 70+ 种并装到正确路径）
+npx skills add YingpingChe-Monitor/vision-skill
 ```
 
 ### 本仓库内的注册
