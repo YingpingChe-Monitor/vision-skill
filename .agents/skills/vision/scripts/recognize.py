@@ -176,7 +176,7 @@ def prepare_image_content(image_ref: str) -> dict:
     return {"type": "image_url", "image_url": {"url": url}}
 
 
-_DATA_URI_RE = re.compile(r"^data:image/[a-zA-Z0-9.+-]+;base64,([A-Za-z0-9+/=]+)$")
+_DATA_URI_RE = re.compile(r"^data:image/[a-zA-Z0-9.+-]+;base64,([A-Za-z0-9+/]*={0,2})$")
 
 
 def _validate_data_uri(uri: str) -> str:
@@ -206,7 +206,7 @@ def _default_opener(url, headers, data):
     req = urllib.request.Request(url, data=data, headers=headers, method="POST")
     try:
         with urllib.request.urlopen(req, timeout=DEFAULT_TIMEOUT) as resp:
-            raw = resp.read().decode("utf-8")
+            raw = resp.read().decode("utf-8", errors="replace")
     except urllib.error.HTTPError as exc:
         raw = exc.read().decode("utf-8", errors="replace")
         try:
@@ -274,6 +274,11 @@ Configure with VISION_API_KEY (see config_guidance on error), or
 VISION_PROVIDER."""
 
 
+def _usage_error() -> int:
+    print(USAGE, file=sys.stderr)
+    return EXIT_CONFIG
+
+
 def main(argv=None, env=None, config_path=None, opener=None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
 
@@ -286,8 +291,7 @@ def main(argv=None, env=None, config_path=None, opener=None) -> int:
         if arg in ("--prompt",):
             i += 1
             if i >= len(argv):
-                print(USAGE, file=sys.stderr)
-                return EXIT_CONFIG
+                return _usage_error()
             prompt = argv[i]
         elif arg == "--json":
             as_json = True
@@ -295,15 +299,13 @@ def main(argv=None, env=None, config_path=None, opener=None) -> int:
             print(USAGE)
             return EXIT_OK
         elif arg.startswith("-"):
-            print(USAGE, file=sys.stderr)
-            return EXIT_CONFIG
+            return _usage_error()
         else:
             image = arg
         i += 1
 
     if not image:
-        print(USAGE, file=sys.stderr)
-        return EXIT_CONFIG
+        return _usage_error()
 
     try:
         config = load_config(env=env, config_path=config_path)

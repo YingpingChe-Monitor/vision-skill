@@ -90,7 +90,7 @@ python .agents/skills/vision/scripts/recognize.py C:\pics\shot.png --prompt "提
 ## 验证
 
 ```bash
-python -m unittest discover -s tests          # 32 项单元 + 本地 mock 服务器 E2E
+python -m unittest discover -s tests          # 37 项单元 + 本地 mock 服务器 E2E
 python .agents/skills/vision/scripts/recognize.py --help
 ```
 
