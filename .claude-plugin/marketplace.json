@@ -1,5 +1,8 @@
 {
   "name": "vision-skills",
+  "owner": {
+    "name": "YingpingChe-Monitor"
+  },
   "plugins": [
     {
       "name": "vision",
