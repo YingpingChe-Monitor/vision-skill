@@ -74,13 +74,22 @@ class ConfigSlice(unittest.TestCase):
             with self.assertRaises(recognize.ConfigError):
                 recognize.load_config(env={"VISION_API_KEY": "sk"}, config_path=p)
 
+    def test_non_utf8_config_file_raises_config_error_not_traceback(self):
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "config.json"
+            p.write_bytes('{"api_key": "\u767e\u70bc"}'.encode("gbk"))
+            with self.assertRaises(recognize.ConfigError) as ctx:
+                recognize.load_config(env={}, config_path=p)
+        self.assertIn("Cannot read config file", str(ctx.exception))
+
     def test_invalid_endpoint_raises_config_error(self):
         with tempfile.TemporaryDirectory() as td:
-            with self.assertRaises(recognize.ConfigError):
-                recognize.load_config(
-                    env={"VISION_API_KEY": "sk", "VISION_ENDPOINT": "not-a-url"},
-                    config_path=Path(td) / "nope.json",
-                )
+            for bad in ("not-a-url", "http://", "ftp://example.com/x"):
+                with self.assertRaises(recognize.ConfigError):
+                    recognize.load_config(
+                        env={"VISION_API_KEY": "sk", "VISION_ENDPOINT": bad},
+                        config_path=Path(td) / "nope.json",
+                    )
 
     def test_unknown_config_file_keys_ignored(self):
         with tempfile.TemporaryDirectory() as td:

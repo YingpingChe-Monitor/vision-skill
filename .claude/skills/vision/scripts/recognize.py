@@ -26,6 +26,7 @@ import os
 import re
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -100,7 +101,7 @@ def load_config(env=None, config_path=None) -> dict:
     if config_path.exists():
         try:
             data = json.loads(config_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise ConfigError(f"Cannot read config file {config_path}: {exc}") from exc
         if not isinstance(data, dict):
             raise ConfigError(f"Config file {config_path} must contain a JSON object.")
@@ -113,10 +114,11 @@ def load_config(env=None, config_path=None) -> dict:
 
     if not cfg["api_key"]:
         raise ConfigError(config_guidance())
-    if not (cfg["endpoint"].startswith("http://") or cfg["endpoint"].startswith("https://")):
+    parts = urllib.parse.urlsplit(cfg["endpoint"])
+    if parts.scheme not in ("http", "https") or not parts.netloc:
         raise ConfigError(
-            f"Invalid endpoint '{cfg['endpoint']}' — must be an http(s) URL, "
-            "e.g. https://dashscope.aliyuncs.com/compatible-mode/v1"
+            f"Invalid endpoint '{cfg['endpoint']}' — must be an http(s) URL "
+            "with a host, e.g. https://dashscope.aliyuncs.com/compatible-mode/v1"
         )
     return cfg
 
@@ -246,7 +248,7 @@ def call_vision(config: dict, image_content: dict, prompt: str = None, opener=No
     opener = opener or _default_opener
     try:
         status, body = opener(url, headers, json.dumps(payload).encode("utf-8"))
-    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+    except (urllib.error.URLError, TimeoutError, OSError, ValueError) as exc:
         raise ApiError(f"Could not reach the vision API at {url}: {exc}") from exc
 
     if status != 200:

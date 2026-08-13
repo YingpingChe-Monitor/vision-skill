@@ -19,7 +19,7 @@
 - `scripts/recognize.py`：stdlib-only，配置解析（env > `~/.config/vision/config.json` > 默认值）、
   三种输入形式、OpenAI 兼容 chat/completions 调用、清晰错误与退出码（0/2/3/4）。
 - `SKILL.md`（英文正文，frontmatter 含 name+description，双方可识别）+ `agents/openai.yaml`。
-- 测试：`tests/test_recognize.py` 39 项（单元 + 本地 mock HTTP 服务器 E2E，`python -m unittest discover -s tests`）。
+- 测试：`tests/test_recognize.py` 40 项（单元 + 本地 mock HTTP 服务器 E2E，`python -m unittest discover -s tests`）。
 
 待人工验收：配置真实百炼 API key 后跑一次本地图片识别（E2E 目前用 mock 服务器验证全链路，
 脚本本身不依赖外网即可测试）。
