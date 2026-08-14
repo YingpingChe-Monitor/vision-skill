@@ -172,6 +172,29 @@ class GitignoreSlice(unittest.TestCase):
             self.assertEqual(rc, 0)
             self.assertFalse((Path(td) / ".gitignore").exists())
 
+    def test_project_output_mentions_gitignore_and_upload_warning(self):
+        import contextlib
+        import io
+        with tempfile.TemporaryDirectory() as td:
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                rc = setup.main(["--set", "api_key=sk-1234567890abcdef", "--target", "project"],
+                                env={}, cwd=td)
+            out = buf.getvalue()
+            self.assertEqual(rc, 0)
+            self.assertIn(".gitignore", out)
+            self.assertIn("never upload", out)
+
+    def test_user_output_has_no_gitignore_warning(self):
+        import contextlib
+        import io
+        with tempfile.TemporaryDirectory() as td:
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                setup.main(["--set", "api_key=sk-1234567890abcdef"], env={}, cwd=td,
+                           config_path=Path(td) / "u.json")
+            self.assertNotIn("never upload", buf.getvalue())
+
     def test_unwritable_gitignore_raises(self):
         with tempfile.TemporaryDirectory() as td:
             gitignore = Path(td) / ".gitignore"

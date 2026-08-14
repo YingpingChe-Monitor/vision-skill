@@ -222,20 +222,25 @@ def interactive(cwd: Path, env: dict, preset_target: str | None) -> int:
         return EXIT_OK
 
     if target == "project":
-        ensure_gitignore(path)  # keep the API key out of git even on public repos
+        gitignore = ensure_gitignore(path)  # keep the API key out of git even on public repos
+    else:
+        gitignore = None
     write_config(path, updates)
     print(f"\nSaved to {path}.")
-    _print_next_steps(path)
+    _print_next_steps(path, gitignore=gitignore)
     return EXIT_OK
 
 
-def _print_next_steps(path: Path) -> None:
+def _print_next_steps(path: Path, gitignore: Path | None = None) -> None:
     script = Path(__file__).resolve()
     print("Next steps:")
     print(f"  - Verify: python \"{script.parent / 'recognize.py'}\" <image-path-or-url>")
     print(f"  - Reset:  delete {path}, or re-run this wizard and enter a new value")
     print("  - Env override (highest priority): export VISION_API_KEY=... "
           "(and optionally VISION_MODEL / VISION_ENDPOINT / VISION_PROVIDER)")
+    if gitignore is not None:
+        print(f"  - {path.name} is already ignored via {gitignore} - never upload or "
+              "commit it manually (git add -f, zip, or sharing the file leaks the key)")
 
 
 def show(effective: dict, cwd: Path) -> int:
@@ -287,13 +292,15 @@ def main(argv=None, env=None, cwd=None, config_path=None) -> int:
                       "git via .gitignore, but only do this for a private repo.")
             path = target_path(target, cwd, config_path=config_path)
             if target == "project":
-                ensure_gitignore(path)  # keep the API key out of git even on public repos
+                gitignore = ensure_gitignore(path)  # keep the API key out of git even on public repos
+            else:
+                gitignore = None
             write_config(path, updates)
             print(f"Saved to {path}:")
             for key, value in updates.items():
                 shown = mask_key(value) if key == "api_key" else value
                 print(f"  {key:<10} {shown}")
-            _print_next_steps(path)
+            _print_next_steps(path, gitignore=gitignore)
             return EXIT_OK
         if args.show:
             return show(resolve_each(env=env, config_path=config_path), cwd)
