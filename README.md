@@ -47,6 +47,8 @@ npx skills add YingpingChe-Monitor/vision-skill
 | ----- | ---- |
 | Reasonix | `.agents/skills/vision/`（本项目 skills 根目录） |
 | Claude Code | `.claude/skills/vision/`（项目级 skills 目录） |
+| Reasonix 命令 | `.reasonix/commands/vision-setup.md`（本地注册，不进 git） |
+| Claude Code 命令 | `.claude/commands/vision-setup.md` |
 
 > 规范副本在 `skills/vision/`；修改后需同步到两个注册位
 > （`.agents/skills/vision/` 与 `.claude/skills/vision/`，`cp` 即可）。
@@ -83,6 +85,31 @@ cp -r .claude/skills/vision ~/.claude/skills/vision
 # 示例：环境变量方式（PowerShell: $env:VISION_API_KEY="sk-..."）
 export VISION_API_KEY="sk-..."
 ```
+
+### 交互式配置向导（`/vision-setup`）
+
+不想手写配置文件？运行配置向导，通过问答完成全部配置
+（provider / API key / endpoint / model，并选择写入用户级还是项目级，
+API key 全程打码显示）：
+
+```bash
+python skills/vision/scripts/setup.py
+```
+
+agent 场景（无需交互）：先逐项询问用户，再一次性写入——
+
+```bash
+python skills/vision/scripts/setup.py --set api_key=sk-... --set model=qwen3-vl-plus --target user
+```
+
+- `--target user`（默认）写入 `~/.config/vision/config.json`，key 不进 git
+- `--target project` 写入项目 `.vision.config.json`——⚠️ 会随仓库提交，
+  公开仓库会泄露 key，仅限私有仓库
+- `--show` 查看当前生效配置（key 打码）
+
+**命令注册**：本仓库内 Reasonix 直接输入 `/vision-setup` 即可；其他项目
+把 `.claude/commands/vision-setup.md` 复制过去（Reasonix 放
+`<项目>/.reasonix/commands/` 或用户级 `~/.reasonix/commands/`）。
 
 ## 装完怎么用（普通用户）
 
@@ -150,7 +177,7 @@ python skills/vision/scripts/recognize.py C:\pics\shot.png --prompt "提取图�
 ## 验证
 
 ```bash
-python -m unittest discover -s tests          # 40 项单元 + 本地 mock 服务器 E2E
+python -m unittest discover -s tests          # 63 项单元 + 本地 mock 服务器 E2E
 python skills/vision/scripts/recognize.py --help
 ```
 

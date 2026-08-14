@@ -44,6 +44,34 @@ Get a key from Aliyun Bailian (百炼) at https://bailian.console.aliyun.com/
 If no key is configured, the script prints step-by-step setup guidance to
 stderr and exits with code 2 — never a cryptic error.
 
+## Setup wizard
+
+Configure the skill through questions (provider, API key, endpoint, model,
+and where to save) by running the interactive wizard:
+
+```
+python "<skill dir>/scripts/setup.py"
+```
+
+Agents: when the user asks to configure the vision skill (e.g. "configure
+vision", or invokes `/vision-setup` where a command file is registered), ask
+the questions from the Configuration table above, then write the answers
+non-interactively so the script validates and merges them:
+
+```
+python "<skill dir>/scripts/setup.py" --set api_key=sk-... --set model=qwen3-vl-plus --target user
+```
+
+- `--target user` (default) writes `~/.config/vision/config.json` — keeps the
+  key out of git.
+- `--target project` writes the nearest `.vision.config.json` (committed to
+  the repo — only choose this for a **private** repo, a public repo would leak
+  the key).
+- `--show` prints the currently effective configuration with the API key
+  masked.
+
+Never repeat a full API key back to the user or into a conversation.
+
 ## Usage
 
 Run the script from this skill's directory:
