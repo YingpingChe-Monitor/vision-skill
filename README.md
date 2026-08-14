@@ -107,9 +107,12 @@ python skills/vision/scripts/setup.py --set api_key=sk-... --set model=qwen3-vl-
   公开仓库会泄露 key，仅限私有仓库
 - `--show` 查看当前生效配置（key 打码）
 
-**命令注册**：本仓库内 Reasonix 直接输入 `/vision-setup` 即可；其他项目
-把 `.claude/commands/vision-setup.md` 复制过去（Reasonix 放
-`<项目>/.reasonix/commands/` 或用户级 `~/.reasonix/commands/`）。
+**命令注册**（Reasonix）：命令文件随 skill 一起安装，在
+`<skill>/commands/vision-setup.md`。它**不会自动注册**——复制到
+`~/.reasonix/commands/`（所有项目生效，推荐）或 `<项目>/.reasonix/commands/`
+（仅该项目），然后**重启 reasonix 会话**（命令列表在启动时加载）。本仓库内的
+`.reasonix/commands/vision-setup.md` 同理（该目录不进 git，仅本地生效）。
+Claude Code 用户用 `.claude/commands/vision-setup.md`（随仓库分发，自动注册）。
 
 ## 装完怎么用（普通用户）
 

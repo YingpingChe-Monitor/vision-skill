@@ -70,6 +70,13 @@ python "<skill dir>/scripts/setup.py" --set api_key=sk-... --set model=qwen3-vl-
 - `--show` prints the currently effective configuration with the API key
   masked.
 
+`/vision-setup` command registration (Reasonix): the command file ships with
+the skill at `<skill dir>/commands/vision-setup.md`. It is not auto-registered —
+copy it to `~/.reasonix/commands/` (all projects) or
+`<project>/.reasonix/commands/` (one project), then restart the session
+(command lists load at startup). When the user invokes `/vision-setup` but no
+such command is registered, offer to register it with the copy above.
+
 Never repeat a full API key back to the user or into a conversation.
 
 ## Usage
