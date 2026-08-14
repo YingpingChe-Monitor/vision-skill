@@ -128,6 +128,36 @@ def target_path(target: str, cwd: Path, config_path=None) -> Path:
     return recognize._find_project_config(cwd) or (cwd / recognize.PROJECT_CONFIG_NAME)
 
 
+GITIGNORE_COMMENT = "# vision skill: never commit the API key (auto-added by setup.py)"
+
+
+def ensure_gitignore(config_path: Path) -> Path | None:
+    """Make sure the directory of a project config file ignores it in git.
+
+    Appends an entry for `config_path.name` to `<dir>/.gitignore` (creating the
+    file when missing) unless it is already covered. Returns the gitignore path,
+    or None when the config is not project-level. Raises SetupError when the
+    gitignore cannot be read or written.
+    """
+    gitignore = config_path.parent / ".gitignore"
+    try:
+        text = gitignore.read_text(encoding="utf-8") if gitignore.exists() else ""
+    except OSError as exc:
+        raise SetupError(f"Cannot read {gitignore}: {exc}") from exc
+    if any("vision.config.json" in line for line in text.splitlines()):
+        return gitignore
+    addition = f"{GITIGNORE_COMMENT}\n{config_path.name}\n"
+    if text:
+        if not text.endswith("\n"):
+            text += "\n"
+        addition = "\n" + addition
+    try:
+        gitignore.write_text(text + addition, encoding="utf-8")
+    except OSError as exc:
+        raise SetupError(f"Cannot update {gitignore}: {exc}") from exc
+    return gitignore
+
+
 def describe_target(target: str, cwd: Path) -> str:
     if target == "user":
         return f"user config  {recognize.DEFAULT_CONFIG_PATH}  (this user only; key stays out of git)"
@@ -191,6 +221,8 @@ def interactive(cwd: Path, env: dict, preset_target: str | None) -> int:
         print("Aborted - nothing was written.")
         return EXIT_OK
 
+    if target == "project":
+        ensure_gitignore(path)  # keep the API key out of git even on public repos
     write_config(path, updates)
     print(f"\nSaved to {path}.")
     _print_next_steps(path)
@@ -251,9 +283,11 @@ def main(argv=None, env=None, cwd=None, config_path=None) -> int:
                 updates[key] = value
             target = args.target or "user"
             if target == "project":
-                print("note: writing to the project config - only do this for a private "
-                      "repo, otherwise the API key would be committed and leaked.")
+                print("note: writing to the project config - the API key is kept out of "
+                      "git via .gitignore, but only do this for a private repo.")
             path = target_path(target, cwd, config_path=config_path)
+            if target == "project":
+                ensure_gitignore(path)  # keep the API key out of git even on public repos
             write_config(path, updates)
             print(f"Saved to {path}:")
             for key, value in updates.items():

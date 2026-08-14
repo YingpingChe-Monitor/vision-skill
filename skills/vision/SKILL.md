@@ -64,9 +64,10 @@ python "<skill dir>/scripts/setup.py" --set api_key=sk-... --set model=qwen3-vl-
 
 - `--target user` (default) writes `~/.config/vision/config.json` — keeps the
   key out of git.
-- `--target project` writes the nearest `.vision.config.json` (committed to
-  the repo — only choose this for a **private** repo, a public repo would leak
-  the key).
+- `--target project` writes the nearest `.vision.config.json` — setup.py
+  automatically adds the file to the project's `.gitignore` so the key cannot
+  be committed (still only choose this for a **private** repo, a public repo
+  would leak the key).
 - `--show` prints the currently effective configuration with the API key
   masked.
 

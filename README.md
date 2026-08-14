@@ -103,8 +103,8 @@ python skills/vision/scripts/setup.py --set api_key=sk-... --set model=qwen3-vl-
 ```
 
 - `--target user`（默认）写入 `~/.config/vision/config.json`，key 不进 git
-- `--target project` 写入项目 `.vision.config.json`——⚠️ 会随仓库提交，
-  公开仓库会泄露 key，仅限私有仓库
+- `--target project` 写入项目 `.vision.config.json`，并**自动把该文件加进项目的
+  `.gitignore`**（防止 key 被提交泄露）；仍建议只在私有仓库使用
 - `--show` 查看当前生效配置（key 打码）
 
 **命令注册**（Reasonix）：命令文件随 skill 一起安装，在

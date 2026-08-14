@@ -140,5 +140,49 @@ class MainSlice(unittest.TestCase):
             self.assertFalse((Path(td) / ".vision.config.json").exists())
 
 
+class GitignoreSlice(unittest.TestCase):
+    def test_project_write_creates_gitignore_entry(self):
+        with tempfile.TemporaryDirectory() as td:
+            rc = setup.main(["--set", "api_key=sk-abc123", "--target", "project"],
+                            env={}, cwd=td)
+            self.assertEqual(rc, 0)
+            gitignore = Path(td) / ".gitignore"
+            self.assertTrue(gitignore.exists())
+            self.assertIn("vision.config.json", gitignore.read_text(encoding="utf-8"))
+            self.assertIn(".vision.config.json", gitignore.read_text(encoding="utf-8"))
+
+    def test_gitignore_entry_not_duplicated(self):
+        with tempfile.TemporaryDirectory() as td:
+            setup.main(["--set", "api_key=sk-1", "--target", "project"], env={}, cwd=td)
+            setup.main(["--set", "api_key=sk-2", "--target", "project"], env={}, cwd=td)
+            text = (Path(td) / ".gitignore").read_text(encoding="utf-8")
+            self.assertEqual(text.count("vision.config.json"), 1)
+
+    def test_gitignore_existing_coverage_skipped(self):
+        with tempfile.TemporaryDirectory() as td:
+            (Path(td) / ".gitignore").write_text("*.vision.config.json\n", encoding="utf-8")
+            setup.main(["--set", "api_key=sk-1", "--target", "project"], env={}, cwd=td)
+            text = (Path(td) / ".gitignore").read_text(encoding="utf-8")
+            self.assertEqual(text.count("vision.config.json"), 1)  # untouched
+
+    def test_user_write_does_not_touch_gitignore(self):
+        with tempfile.TemporaryDirectory() as td:
+            rc = setup.main(["--set", "api_key=sk-abc123"], env={}, cwd=td,
+                            config_path=Path(td) / "user.json")
+            self.assertEqual(rc, 0)
+            self.assertFalse((Path(td) / ".gitignore").exists())
+
+    def test_unwritable_gitignore_raises(self):
+        with tempfile.TemporaryDirectory() as td:
+            gitignore = Path(td) / ".gitignore"
+            gitignore.write_text("", encoding="utf-8")
+            gitignore.chmod(0o444)  # read-only
+            try:
+                with self.assertRaises(setup.SetupError):
+                    setup.ensure_gitignore(Path(td) / ".vision.config.json")
+            finally:
+                gitignore.chmod(0o644)
+
+
 if __name__ == "__main__":
     unittest.main()
