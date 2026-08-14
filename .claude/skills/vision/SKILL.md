@@ -1,6 +1,6 @@
 ---
 name: vision
-description: Recognize or describe an image using a configurable vision AI model (default: Aliyun Bailian Qwen-VL via the OpenAI-compatible endpoint). Use when the user supplies an image as a local file path, an http(s) URL, or a pasted base64 data URI and wants it recognized, transcribed, or summarized — especially when the current model cannot see images.
+description: "Recognize or describe an image using a configurable vision AI model (default: Aliyun Bailian Qwen-VL via the OpenAI-compatible endpoint). Use when the user supplies an image as a local file path, an http(s) URL, or a pasted base64 data URI and wants it recognized, transcribed, or summarized — especially when the current model cannot see images."
 argument-hint: "Image input (local path, http(s) URL, or base64 data URI), optionally followed by the task to perform on the image"
 ---
 
