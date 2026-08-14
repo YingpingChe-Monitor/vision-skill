@@ -60,6 +60,44 @@ npx skills add YingpingChe-Monitor/vision-skill
 cp -r .claude/skills/vision ~/.claude/skills/vision
 ```
 
+### 更新已安装的技能
+
+远程仓库更新后（新功能 / bug 修复），按安装方式对应更新：
+
+**skills.sh 方式**（在安装了 skill 的项目目录下运行）：
+
+```bash
+npx skills update vision       # 只更新 vision（推荐）
+npx skills update              # 更新该项目全部 skills
+npx skills update vision -g    # 全局安装的用 -g（用户级）
+```
+
+**Claude Code `/plugin` 方式**（在 Claude Code 会话中）：
+
+```
+/plugin marketplace update     # 拉取远程最新 marketplace
+/plugin update                 # 更新已安装插件（或在 /plugin 菜单选择）
+```
+
+Claude Code 本身有后台自动更新，插件会定期自动拉新；直接重新执行
+`/plugin install vision@vision-skills` 也能强制覆盖为最新版。
+
+**更新后确认**：
+
+1. 新功能是否到位：`ls <skill目录>/scripts/` 应能看到 `recognize.py` 与
+   `setup.py`（配置向导、自动 `.gitignore` 保护均在其中）；
+2. 若之前手动注册过 `/vision-setup` 命令文件，重新复制一次——
+   旧副本不会随更新自动覆盖：
+
+   ```bash
+   # Claude Code 用户级（所有项目）
+   cp <skill目录>/commands/vision-setup.md ~/.claude/commands/vision-setup.md
+   # Reasonix 用户级（所有项目）
+   cp <skill目录>/commands/vision-setup.md ~/.reasonix/commands/vision-setup.md
+   ```
+
+   （项目级分别复制到 `<项目>/.claude/commands/` 与 `<项目>/.reasonix/commands/`。）
+
 ## 配置
 
 优先级：**环境变量 > 项目配置文件 > 用户配置文件 > 默认值**。
